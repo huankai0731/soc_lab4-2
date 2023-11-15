@@ -107,8 +107,8 @@ module user_proj_example #(
     // WB MI A
     assign valid = wbs_cyc_i && wbs_stb_i && decoded; 
     assign wstrb = wbs_sel_i & {4{wbs_we_i}};
-    assign wbs_dat_o = decoded == 1'b1 ? exmem_rdata : 
-                        axi_l_decoded == 1'b1 ? rdata : sm_tdata ;
+    assign wbs_dat_o = decoded       == 1'b1 ? exmem_rdata : 
+                       axi_l_decoded == 1'b1 ? rdata : sm_tdata ;
                        
     assign wdata = wbs_dat_i;
     assign wbs_ack_o = ready || wready || arready || ss_tready || sm_tready;
@@ -165,31 +165,21 @@ module user_proj_example #(
     assign axi_s_decoded = {wbs_adr_i[31:24],wbs_adr_i[7] }== 9'b1100001 ? 1'b1 : 1'b0;
     assign ss_tvalid = wbs_cyc_i && wbs_stb_i && axi_s_decoded && wbs_sel_i && wbs_we_i;
     
-integer sm_DELAYS =10;
+    integer sm_DELAYS =10;
     always @(posedge clk) begin
-
-        if(wbs_adr_i[31:20] == 12'h300) begin
-            //$display("ack%d datao:%d din:%x addr:%x stb:%d ssready:%d we:%d",wbs_ack_o,rdata,wbs_dat_i,wbs_adr_i,wbs_stb_i,ss_tready,wbs_we_i);
-
-        end
-        
             sm_tready <= 1'b0;
             if ( sm_tvalid && !sm_tready && axi_s_decoded) begin
                 if ( delayed_count == sm_DELAYS ) begin
                     delayed_count <= 16'b0;
                     sm_tready <= 1'b1;
-                    //$display("addr%x",wbs_adr_i);
                 end else begin
                     delayed_count <= delayed_count + 1;
                 end
             end
-        
     end
 
 
     always @(posedge clk) begin
-        //if(wbs_adr_i[31:20] == 12'h300)$display("ack%d datao:%d din:%x addr:%x stb:%d sel:%d we:%d",wbs_ack_o,rdata,wbs_dat_i,wbs_adr_i,wbs_stb_i,wbs_sel_i,wbs_we_i);
-        //$display("ss_tvalid%d",ss_tvalid);
         if (rst) begin
             ready <= 1'b0;
             delayed_count <= 16'b0;
